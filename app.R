@@ -5,7 +5,7 @@
 #
 #    http://shiny.rstudio.com/
 #
-
+options(shiny.maxRequestSize=15*1024^2)
 library(shiny)
 library(dplyr)
 
@@ -16,9 +16,10 @@ ui <- fluidPage(# Application title
   # Sidebar with a slider input for number of bins
   sidebarLayout(
     sidebarPanel(
+      htmlOutput("loadLegnaFile"),
       fileInput(
         "mutable",
-        "Load MU table from Legna's website (https://www.llorr-stats.com/static/mu.html#diamond)",
+        "Make sure to use the newest version (e.g. mu_prevs_401.csv)",
         accept = c("text/csv",
                    "text/comma-separated-values,text/plain",
                    ".csv")
@@ -31,13 +32,24 @@ ui <- fluidPage(# Application title
                   choices = "Upload Legna's file first!")
     ),
     # Show a plot of the generated distribution
-    mainPanel(tableOutput('weakPoints'))),
+    mainPanel(h5("If there is no data shown there are not enough matches < 40"), tableOutput('weakPoints'))),
   hr(),
-  print("Questions or suggestions? See https://github.com/JayJayBinks/lor-lineup-weakpoints This app was Rono's idea and i am continuing it.")
+  htmlOutput("questions"),
+  br(),
+  print("This app was first developed by Rono and i am continuing it."),
 )
 
 # Define server logic required to draw a histogram
 server <- function(input, output, session) {
+  output$questions <- renderUI({
+    HTML("Questions or suggestions?<a href=https://github.com/JayJayBinks/lor-lineup-weakpoints target=_blank>See Github page (Link)</a>")
+  })
+  output$loadLegnaFile <- renderUI({
+    HTML("<h4><a href=https://github.com/MaouLegna/llorr-website/tree/main/static/data target=_blank>Load MU table from Legna (Link)</a></h4>")
+  })
+  
+  
+ 
   WP <- reactive({
     inFile <- input$mutable
     if (is.null(inFile))
@@ -48,14 +60,15 @@ server <- function(input, output, session) {
     lineup <- c(input$lineup1, input$lineup2, input$lineup3)
     
     relevantMUs <-
-      MU %>% filter(playerDeck == lineup[1] |
-                      playerDeck == lineup[2] | playerDeck == lineup[3])
+      MU %>% filter((archetype_1 == lineup[1] |
+                      archetype_1 == lineup[2] | archetype_1 == lineup[3]) & mu_n > 40)
+  
     weakPoints <-
-      relevantMUs %>% group_by(opponentDeck) %>% summarise(
-        WeakDecks = paste(playerDeck[which(muWR < 0.5)],collapse = ' / '),
-        WeakPoint = sum(muWR < 0.5),
-        AverageWR = mean(muWR)
-      ) %>% filter(WeakPoint > 1)
+      relevantMUs %>% group_by(archetype_2) %>% summarise(
+        WeakDecks = paste(archetype_1[which(mu_wr < 0.5)],collapse = ' / '),
+        WeakPoint = sum(mu_wr < 0.5),
+        AverageWR = mean(mu_wr)
+      ) %>% filter(WeakPoint > 1) %>% arrange(desc(WeakPoint))
     
     return(weakPoints)
   })
@@ -65,15 +78,15 @@ server <- function(input, output, session) {
     updateSelectInput(session,
                       "lineup1",
                       label = "Select",
-                      choices = unique(MU$playerDeck))
+                      choices = unique(MU$archetype_1))
     updateSelectInput(session,
                       "lineup2",
                       label = "Select",
-                      choices = unique(MU$playerDeck))
+                      choices = unique(MU$archetype_1))
     updateSelectInput(session,
                       "lineup3",
                       label = "Select",
-                      choices = unique(MU$playerDeck))
+                      choices = unique(MU$archetype_1))
   })
   output$weakPoints <- renderTable({
     WP()
