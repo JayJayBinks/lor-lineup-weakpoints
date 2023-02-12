@@ -33,7 +33,7 @@ ui <- fluidPage(# Application title
     # Show a plot of the generated distribution
     mainPanel(tableOutput('weakPoints'))),
   hr(),
-  print("Questions or suggestions? Ping me at Discord! Rono#8604")
+  print("Questions or suggestions? See https://github.com/JayJayBinks/lor-lineup-weakpoints This app was Rono's idea and i am continuing it.")
 )
 
 # Define server logic required to draw a histogram
