@@ -16,20 +16,12 @@ ui <- fluidPage(# Application title
   # Sidebar with a slider input for number of bins
   sidebarLayout(
     sidebarPanel(
-      htmlOutput("loadLegnaFile"),
-      fileInput(
-        "mutable",
-        "Make sure to use the newest version (e.g. mu_prevs_401.csv)",
-        accept = c("text/csv",
-                   "text/comma-separated-values,text/plain",
-                   ".csv")
-      ),
-      selectInput("lineup1", "Lineup Deck 1",
-                  choices = "Upload Legna's file first!"),
-      selectInput("lineup2", "Lineup Deck 2",
-                  choices = "Upload Legna's file first!"),
-      selectInput("lineup3", "Lineup Deck 3",
-                  choices = "Upload Legna's file first!")
+      selectizeInput("lineup1", "Lineup Deck 1",
+                  choices = "Wait until Mu Tale downloaded..."),
+      selectizeInput("lineup2", "Lineup Deck 2",
+                  choices = "Wait until Mu Tale downloaded..."),
+      selectizeInput("lineup3", "Lineup Deck 3",
+                  choices = "Wait until Mu Tale downloaded...")
     ),
     # Show a plot of the generated distribution
     # If there is no data shown there are not enough matches (MatchupsCount < 10)
@@ -45,19 +37,25 @@ server <- function(input, output, session) {
   output$questions <- renderUI({
     HTML("Questions or suggestions? Create an issue at the <a href=https://github.com/JayJayBinks/lor-lineup-weakpoints target=_blank>Github page (Link)</a>")
   })
-  output$loadLegnaFile <- renderUI({
-    HTML("<h4><a href=https://github.com/MaouLegna/llorr-website/tree/main/static/data target=_blank>Load MU table from Legna (Link)</a></h4>")
-  })
-  
-  
+  print("123")
+  MU <- read.csv("https://raw.githubusercontent.com/MaouLegna/llorr-website/main/static/data/mu_prevs_401.csv")
+  updateSelectizeInput(session,
+                       "lineup1",
+                       label = "Select",
+                       server = TRUE,
+                       choices = unique(MU$archetype_1))
+  updateSelectizeInput(session,
+                       "lineup2",
+                       label = "Select",
+                       server = TRUE,
+                       choices = unique(MU$archetype_1))
+  updateSelectizeInput(session,
+                       "lineup3",
+                       label = "Select",
+                       server = TRUE,
+                       choices = unique(MU$archetype_1))
  
   WP <- reactive({
-    inFile <- input$mutable
-    if (is.null(inFile))
-      return(NULL)
-    
-    MU <- read.csv(inFile$datapath)
-    
     lineup <- c(input$lineup1, input$lineup2, input$lineup3)
     
     relevantMUs <-
@@ -73,22 +71,6 @@ server <- function(input, output, session) {
       ) %>% filter(WeakPoint > 1) %>% filter(MatchupsCount >= 5) %>% arrange(desc(MatchupsCount))
     
     return(weakPoints)
-  })
-  observeEvent(input$mutable, {
-    inFile <- input$mutable
-    MU <- read.csv(inFile$datapath)
-    updateSelectInput(session,
-                      "lineup1",
-                      label = "Select",
-                      choices = unique(MU$archetype_1))
-    updateSelectInput(session,
-                      "lineup2",
-                      label = "Select",
-                      choices = unique(MU$archetype_1))
-    updateSelectInput(session,
-                      "lineup3",
-                      label = "Select",
-                      choices = unique(MU$archetype_1))
   })
   output$weakPoints <- renderTable({
     WP()
