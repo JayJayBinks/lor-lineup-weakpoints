@@ -8,6 +8,7 @@
 options(shiny.maxRequestSize=15*1024^2)
 library(shiny)
 library(dplyr)
+library(DT)
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(# Application title
@@ -25,7 +26,7 @@ ui <- fluidPage(# Application title
     ),
     # Show a plot of the generated distribution
     # If there is no data shown there are not enough matches (MatchupsCount < 10)
-    mainPanel(h5("Pay attention to the MatchupsCount, few matches mean insignifcant data."), tableOutput('weakPoints'))),
+    mainPanel(h5("Pay attention to the MatchupsCount, few matches mean insignifcant data."), DT::dataTableOutput('weakPoints'))),
   hr(),
   htmlOutput("questions"),
   br(),
@@ -66,14 +67,15 @@ server <- function(input, output, session) {
       relevantMUs %>% group_by(archetype_2) %>% summarise(
         WeakDecks = paste(archetype_1[which(mu_wr < 0.5)],collapse = ' / '),
         WeakPoint = sum(mu_wr < 0.5),
-        AverageWR = mean(mu_wr),
+        AverageWR = round(mean(mu_wr), digits = 2),
         MatchupsCount = sum(mu_n)
       ) %>% filter(WeakPoint > 1) %>% filter(MatchupsCount >= 5) %>% arrange(desc(MatchupsCount))
     
     return(weakPoints)
   })
-  output$weakPoints <- renderTable({
-    WP()
+  output$weakPoints <- DT::renderDataTable({
+    DT::datatable(WP(), options = list(lengthMenu = c(10, 20, 30), pageLength = 10, orderClasses = TRUE ,
+                                       order = list(list(3, 'desc'), list(5, 'desc'))))
   })
 }
 
