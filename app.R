@@ -32,7 +32,8 @@ ui <- fluidPage(# Application title
                   choices = "Upload Legna's file first!")
     ),
     # Show a plot of the generated distribution
-    mainPanel(h5("If there is no data shown there are not enough matches < 40"), tableOutput('weakPoints'))),
+    # If there is no data shown there are not enough matches (MatchupsCount < 10)
+    mainPanel(h5("Pay attention to the MatchupsCount, few matches mean insignifcant data."), tableOutput('weakPoints'))),
   hr(),
   htmlOutput("questions"),
   br(),
@@ -42,7 +43,7 @@ ui <- fluidPage(# Application title
 # Define server logic required to draw a histogram
 server <- function(input, output, session) {
   output$questions <- renderUI({
-    HTML("Questions or suggestions?<a href=https://github.com/JayJayBinks/lor-lineup-weakpoints target=_blank>See Github page (Link)</a>")
+    HTML("Questions or suggestions? Create an issue at the <a href=https://github.com/JayJayBinks/lor-lineup-weakpoints target=_blank>Github page (Link)</a>")
   })
   output$loadLegnaFile <- renderUI({
     HTML("<h4><a href=https://github.com/MaouLegna/llorr-website/tree/main/static/data target=_blank>Load MU table from Legna (Link)</a></h4>")
@@ -61,14 +62,15 @@ server <- function(input, output, session) {
     
     relevantMUs <-
       MU %>% filter((archetype_1 == lineup[1] |
-                      archetype_1 == lineup[2] | archetype_1 == lineup[3]) & mu_n > 40)
+                      archetype_1 == lineup[2] | archetype_1 == lineup[3]))
   
     weakPoints <-
       relevantMUs %>% group_by(archetype_2) %>% summarise(
         WeakDecks = paste(archetype_1[which(mu_wr < 0.5)],collapse = ' / '),
         WeakPoint = sum(mu_wr < 0.5),
-        AverageWR = mean(mu_wr)
-      ) %>% filter(WeakPoint > 1) %>% arrange(desc(WeakPoint))
+        AverageWR = mean(mu_wr),
+        MatchupsCount = sum(mu_n)
+      ) %>% filter(WeakPoint > 1) %>% filter(MatchupsCount >= 5) %>% arrange(desc(WeakPoint))
     
     return(weakPoints)
   })
