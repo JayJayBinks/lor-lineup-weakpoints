@@ -70,7 +70,7 @@ server <- function(input, output, session) {
         WeakPoint = sum(mu_wr < 0.5),
         AverageWR = mean(mu_wr),
         MatchupsCount = sum(mu_n)
-      ) %>% filter(WeakPoint > 1) %>% filter(MatchupsCount >= 5) %>% arrange(desc(WeakPoint))
+      ) %>% filter(WeakPoint > 1) %>% filter(MatchupsCount >= 5) %>% arrange(desc(MatchupsCount))
     
     return(weakPoints)
   })
