@@ -38,7 +38,6 @@ server <- function(input, output, session) {
   output$questions <- renderUI({
     HTML("Questions or suggestions? Create an issue at the <a href=https://github.com/JayJayBinks/lor-lineup-weakpoints target=_blank>Github page (Link)</a>")
   })
-  print("123")
   MU <- read.csv("https://raw.githubusercontent.com/MaouLegna/llorr-website/main/static/data/mu_prevs_401.csv")
   updateSelectizeInput(session,
                        "lineup1",
