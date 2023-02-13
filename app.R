@@ -16,7 +16,10 @@ ui <- fluidPage(# Application title
   
   # Sidebar with a slider input for number of bins
   sidebarLayout(
+
     sidebarPanel(
+      h4("Credits for the MU data go all to Legna! See this link for the freshness of mu_prevs_401.csv"),
+      htmlOutput("legna"),
       selectizeInput("lineup1", "Lineup Deck 1",
                   choices = "Wait until Mu Tale downloaded..."),
       selectizeInput("lineup2", "Lineup Deck 2",
@@ -38,6 +41,10 @@ server <- function(input, output, session) {
   output$questions <- renderUI({
     HTML("Questions or suggestions? Create an issue at the <a href=https://github.com/JayJayBinks/lor-lineup-weakpoints target=_blank>Github page (Link)</a>")
   })
+  output$legna <- renderUI({
+    HTML("<h4><a href=https://github.com/MaouLegna/llorr-website/tree/main/static/data target=_blank>(Link)</a></h4>")
+  })
+  
   MU <- read.csv("https://raw.githubusercontent.com/MaouLegna/llorr-website/main/static/data/mu_prevs_401.csv")
   updateSelectizeInput(session,
                        "lineup1",
